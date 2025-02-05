@@ -2,20 +2,38 @@ import torch
 from torch.utils.data import Dataset
 
 
-class TimeSeriesDataset(Dataset):
-    def __init__(self, data, seq_length):
-        """
-        data: numpy array，形状为 (num_samples, features)
-        seq_length: 每个样本的序列长度
-        """
+class CustomDataset(Dataset):
+    def __init__(self, data, input_length, output_length):
         self.data = data
-        self.seq_length = seq_length
-
-    def __len__(self):
-        return len(self.data) - self.seq_length
+        self.N = len(self.data)
+        self.input_length = input_length
+        self.output_length = output_length
 
     def __getitem__(self, idx):
-        # 使用当前序列预测下一个时间步（滑动窗口）
-        x = self.data[idx : idx + self.seq_length]
-        y = self.data[idx + 1 : idx + self.seq_length + 1]
-        return torch.tensor(x, dtype=torch.float32), torch.tensor(y, dtype=torch.float32)
+        x = self.data[idx: idx + self.input_length]
+        y = self.data[idx + self.input_length -1: idx + self.input_length + self.output_length]
+
+        x = torch.FloatTensor(x)
+        y = torch.FloatTensor(y) 
+        
+        return x, y
+
+    def __len__(self):
+        return self.N - self.input_length - self.output_length
+
+
+class BatchSampler():
+    def __init__(self, dataset, batch_size):
+        self.B = batch_size
+        self.dataset = dataset
+
+    def __call__(self):
+        batch = [self.dataset[i] for i in self.get_random_inital_conditions()]
+
+        xs = torch.stack([x for x, _ in batch])
+        ys = torch.stack([y for _, y in batch])
+
+        return xs, ys
+        
+    def get_random_inital_conditions(self):
+        return torch.randperm(len(self.dataset))[:self.B]

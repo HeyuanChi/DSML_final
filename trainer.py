@@ -20,8 +20,9 @@ def train_model(model,
     step_num = 0
     losses = []
 
+    epoch_bar = tqdm(range(1, num_epochs + 1), desc='Epochs', leave=True)
 
-    for epoch in tqdm(range(num_epochs + 1)): 
+    for _ in epoch_bar:
         step_num += 1            
         lrate = min(1 / step_num ** 0.5, step_num / warmup_steps ** 1.5) / d_model ** 0.5
         for param_group in optimizer.param_groups:
@@ -40,7 +41,6 @@ def train_model(model,
         optimizer.step()
         losses.append(loss.item())
 
-        if epoch % (num_epochs // 100) == 0:
-            print('Epoch: {}, Loss: {:.5f}'.format(epoch, loss.item()))
+        epoch_bar.set_postfix({'Loss': f'{loss.item():.6f}'})
 
     return losses

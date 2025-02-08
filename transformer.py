@@ -30,7 +30,7 @@ class TimeSeriesTransformer(nn.Module):
                  dim_feedforward=2048, 
                  dropout=0.1, 
                  output_dim=3, 
-                 max_len=5000):
+                 max_len=100000):
         super(TimeSeriesTransformer, self).__init__()
         
         # Input embedding

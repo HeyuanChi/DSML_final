@@ -5,29 +5,29 @@ from scipy.ndimage import gaussian_filter1d
 SMOOTHING_SIGMA = 20
 
 #compute power spectra distances and average across all dimensions
-def power_spectrum_error(x_gen, x_true):
-    pse_errors_per_dim = power_spectrum_error_per_dim(x_gen, x_true)
+def power_spectrum_error(x_gen, x_true, sigma=SMOOTHING_SIGMA):
+    pse_errors_per_dim = power_spectrum_error_per_dim(x_gen, x_true, sigma)
     return np.array(pse_errors_per_dim).mean(axis=0)
 
-def compute_power_spectrum(x):
+def compute_power_spectrum(x, sigma):
     fft_real = np.fft.rfft(x)
     ps = np.abs(fft_real)**2
-    ps_smoothed = gaussian_filter1d(ps, SMOOTHING_SIGMA)
+    ps_smoothed = gaussian_filter1d(ps, sigma)
     return ps_smoothed
 
-def get_average_spectrum(x):
+def get_average_spectrum(x, sigma):
     x_ = (x - x.mean()) / x.std()  # normalize individual trajectories
-    spectrum = compute_power_spectrum(x_)
+    spectrum = compute_power_spectrum(x_, sigma)
     return spectrum / spectrum.sum()
 
-def power_spectrum_error_per_dim(x_gen, x_true):
+def power_spectrum_error_per_dim(x_gen, x_true, sigma):
     assert x_true.shape[1] == x_gen.shape[1]
     assert x_true.shape[2] == x_gen.shape[2]
     dim_x = x_gen.shape[2]
     pse_per_dim = []
     for dim in range(dim_x):
-        spectrum_true = get_average_spectrum(x_true[:, :, dim])
-        spectrum_gen = get_average_spectrum(x_gen[:, :, dim])
+        spectrum_true = get_average_spectrum(x_true[:, :, dim], sigma)
+        spectrum_gen = get_average_spectrum(x_gen[:, :, dim], sigma)
         hd = hellinger_distance(spectrum_true, spectrum_gen)
         pse_per_dim.append(hd)
     return pse_per_dim

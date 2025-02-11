@@ -2,3 +2,5 @@
 .DS_Store
 *.pth
 *.txt
+*.html
+all.ipynb
